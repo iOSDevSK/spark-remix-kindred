@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingCart, Menu, X, Instagram } from "lucide-react";
+import { ShoppingBag, Menu, X, Instagram } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -7,8 +7,7 @@ import { cn } from "@/lib/utils";
 const navLinks = [
   { to: "/shop", label: "Shop" },
   { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
-  
+  { to: "/journal", label: "Journal" },
 ];
 
 export default function Header() {
@@ -26,6 +25,10 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   const transparent = isHome && !scrolled && !mobileOpen;
 
   return (
@@ -34,7 +37,7 @@ export default function Header() {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         transparent
           ? "bg-transparent border-b border-transparent"
-          : "bg-white border-b border-border shadow-sm"
+          : "bg-background border-b border-border"
       )}
     >
       <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
@@ -42,13 +45,12 @@ export default function Header() {
           to="/"
           className={cn(
             "text-2xl font-light tracking-wide transition-colors",
-            transparent ? "text-white" : "text-foreground"
+            transparent ? "text-primary-foreground" : "text-foreground"
           )}
         >
           Terra Studios
         </Link>
 
-        {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map(link => (
             <Link
@@ -57,9 +59,10 @@ export default function Header() {
               className={cn(
                 "text-sm uppercase tracking-wider transition-colors",
                 transparent
-                  ? "text-white/80 hover:text-white"
+                  ? "text-primary-foreground/80 hover:text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground",
-                pathname === link.to && (transparent ? "text-white font-medium" : "text-foreground font-medium")
+                pathname.startsWith(link.to) &&
+                  (transparent ? "text-primary-foreground font-medium" : "text-foreground font-medium")
               )}
             >
               {link.label}
@@ -69,10 +72,24 @@ export default function Header() {
 
         <div className="hidden md:flex items-center gap-5">
           <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-            <Instagram className={cn("w-[18px] h-[18px] transition-colors", transparent ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground")} />
+            <Instagram
+              className={cn(
+                "w-[18px] h-[18px] transition-colors",
+                transparent
+                  ? "text-primary-foreground/80 hover:text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            />
           </a>
           <Link to="/cart" className="relative" aria-label="Shopping cart">
-            <ShoppingCart className={cn("w-[18px] h-[18px] transition-colors", transparent ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground")} />
+            <ShoppingBag
+              className={cn(
+                "w-[18px] h-[18px] transition-colors",
+                transparent
+                  ? "text-primary-foreground/80 hover:text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            />
             {totalItems > 0 && (
               <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-[10px] w-[18px] h-[18px] rounded-full flex items-center justify-center font-medium">
                 {totalItems}
@@ -81,10 +98,11 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Mobile */}
         <div className="flex md:hidden items-center gap-4">
           <Link to="/cart" className="relative" aria-label="Shopping cart">
-            <ShoppingCart className={cn("w-5 h-5 transition-colors", transparent ? "text-white" : "text-foreground")} />
+            <ShoppingBag
+              className={cn("w-5 h-5 transition-colors", transparent ? "text-primary-foreground" : "text-foreground")}
+            />
             {totalItems > 0 && (
               <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-[10px] w-[18px] h-[18px] rounded-full flex items-center justify-center font-medium">
                 {totalItems}
@@ -92,17 +110,17 @@ export default function Header() {
             )}
           </Link>
           <button onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-            {mobileOpen
-              ? <X className={cn("w-6 h-6", transparent ? "text-white" : "text-foreground")} />
-              : <Menu className={cn("w-6 h-6", transparent ? "text-white" : "text-foreground")} />
-            }
+            {mobileOpen ? (
+              <X className={cn("w-6 h-6", transparent ? "text-primary-foreground" : "text-foreground")} />
+            ) : (
+              <Menu className={cn("w-6 h-6", transparent ? "text-primary-foreground" : "text-foreground")} />
+            )}
           </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
       {mobileOpen && (
-        <nav className="md:hidden border-t border-border bg-white px-6 py-6 space-y-4">
+        <nav className="md:hidden border-t border-border bg-background px-6 py-6 space-y-4">
           {navLinks.map(link => (
             <Link
               key={link.to}
@@ -110,7 +128,7 @@ export default function Header() {
               onClick={() => setMobileOpen(false)}
               className={cn(
                 "block text-sm uppercase tracking-wider text-muted-foreground",
-                pathname === link.to && "text-foreground font-medium"
+                pathname.startsWith(link.to) && "text-foreground font-medium"
               )}
             >
               {link.label}
