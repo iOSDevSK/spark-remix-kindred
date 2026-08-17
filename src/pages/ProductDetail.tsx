@@ -1,89 +1,179 @@
-import { useParams, Navigate, Link } from "react-router-dom";
 import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { Truck, RotateCcw } from "lucide-react";
+import QuantitySelector from "@/components/QuantitySelector";
+import ProductCard from "@/components/ProductCard";
+import SectionHeading from "@/components/SectionHeading";
 import { getProductBySlug, getRelatedProducts } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import QuantitySelector from "@/components/QuantitySelector";
-import ProductCard from "@/components/ProductCard";
+import { cn } from "@/lib/utils";
 
 export default function ProductDetail() {
-  const { slug } = useParams<{ slug: string }>();
-  const product = getProductBySlug(slug || "");
+  const { slug = "" } = useParams();
+  const product = getProductBySlug(slug);
   const { addItem } = useCart();
   const { toast } = useToast();
+
+  const [activeImage, setActiveImage] = useState(0);
+  const [size, setSize] = useState<string | undefined>(product?.sizes?.[0]);
   const [quantity, setQuantity] = useState(1);
 
-  if (!product) return <Navigate to="/shop" replace />;
+  if (!product) {
+    return (
+      <div className="max-w-7xl mx-auto px-6 py-32 text-center">
+        <h1 className="text-3xl font-light text-foreground mb-4">Product not found</h1>
+        <Link to="/shop" className="text-sm uppercase tracking-widest border-b border-foreground pb-1">
+          Back to shop
+        </Link>
+      </div>
+    );
+  }
 
+  const soldOut = product.badge === "sold-out";
   const related = getRelatedProducts(product.slug, 3);
-  const isSoldOut = product.badge === "sold-out";
 
-  const handleAddToCart = () => {
-    if (isSoldOut) return;
-    addItem({ slug: product.slug, name: product.name, price: product.price, image: product.image }, quantity);
+  const handleAdd = () => {
+    addItem(
+      { slug: product.slug, name: product.name, price: product.price, image: product.image, size },
+      quantity
+    );
     toast({
       title: "Added to cart",
-      description: `${quantity}× ${product.name} added to your cart.`,
+      description: `${product.name}${size ? ` · ${size}` : ""} × ${quantity}`,
     });
-    setQuantity(1);
   };
 
   return (
     <>
-      <section className="max-w-6xl mx-auto px-6 py-8">
-        <nav className="text-sm text-muted-foreground mb-6">
+      <div className="max-w-7xl mx-auto px-6 pt-10">
+        <nav className="text-xs uppercase tracking-widest text-muted-foreground">
           <Link to="/shop" className="hover:text-foreground transition-colors">Shop</Link>
-          <span className="mx-2">›</span>
-          <span className="text-foreground">{product.name}</span>
+          <span className="mx-2">/</span>
+          <Link to={`/shop?category=${product.category}`} className="hover:text-foreground transition-colors">
+            {product.category}
+          </Link>
         </nav>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          {/* Image */}
-          <div className="w-full aspect-[4/5] bg-warm-bg">
-            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+      <section className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+        {/* Gallery */}
+        <div>
+          <div className="bg-background overflow-hidden">
+            <img
+              src={product.gallery[activeImage]}
+              alt={product.name}
+              width={800}
+              height={800}
+              className="w-full aspect-[4/5] object-cover"
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-3 mt-3">
+            {product.gallery.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveImage(index)}
+                className={cn(
+                  "overflow-hidden border transition-colors",
+                  index === activeImage ? "border-foreground" : "border-transparent hover:border-border"
+                )}
+                aria-label={`View image ${index + 1}`}
+              >
+                <img
+                  src={image}
+                  alt={`${product.name} view ${index + 1}`}
+                  loading="lazy"
+                  className="w-full aspect-square object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="lg:pt-6">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">{product.category}</p>
+          <h1 className="mt-2 text-3xl md:text-4xl font-light text-foreground">{product.name}</h1>
+
+          <div className="mt-4 flex items-center gap-3">
+            <span className="text-xl text-foreground">${product.price.toFixed(2)}</span>
+            {product.originalPrice && (
+              <span className="text-base text-muted-foreground/60 line-through">
+                ${product.originalPrice.toFixed(2)}
+              </span>
+            )}
           </div>
 
-          {/* Info */}
-          <div className="flex flex-col">
-            <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-wide text-foreground mb-4">{product.name}</h1>
-            <p className="text-4xl md:text-5xl font-bold text-foreground mb-6">${product.price.toFixed(2)}</p>
-            {product.availability && (
-              <p className="text-sm text-accent font-medium mb-4">{product.availability}</p>
-            )}
-            <p className="text-base leading-relaxed text-muted-foreground mb-8">{product.description}</p>
+          <p className="mt-6 text-muted-foreground leading-relaxed">{product.description}</p>
+          <p className="mt-4 text-sm text-muted-foreground">
+            <span className="text-foreground">Materials:</span> {product.materials}
+          </p>
 
-            {!isSoldOut ? (
-              <div className="flex items-stretch gap-3">
-                <QuantitySelector quantity={quantity} onChange={setQuantity} />
-                <button
-                  onClick={handleAddToCart}
-                  className="flex-1 py-3 bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
-                >
-                  Add To Cart
-                </button>
+          {product.sizes && (
+            <div className="mt-8">
+              <p className="text-xs uppercase tracking-widest text-foreground mb-3">Size</p>
+              <div className="flex flex-wrap gap-2">
+                {product.sizes.map(option => (
+                  <button
+                    key={option}
+                    onClick={() => setSize(option)}
+                    className={cn(
+                      "min-w-[56px] px-4 py-2 border text-sm transition-colors",
+                      size === option
+                        ? "border-foreground bg-foreground text-primary-foreground"
+                        : "border-border text-foreground hover:border-foreground"
+                    )}
+                  >
+                    {option}
+                  </button>
+                ))}
               </div>
-            ) : (
-              <button
-                disabled
-                className="w-full py-3 bg-muted text-muted-foreground text-sm font-medium cursor-not-allowed"
-              >
-                Sold Out
-              </button>
-            )}
+            </div>
+          )}
+
+          <div className="mt-8">
+            <p className="text-xs uppercase tracking-widest text-foreground mb-3">Quantity</p>
+            <QuantitySelector quantity={quantity} onChange={setQuantity} />
+          </div>
+
+          <button
+            onClick={handleAdd}
+            disabled={soldOut}
+            className="mt-8 w-full py-4 bg-foreground text-primary-foreground text-sm uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {soldOut ? "Sold out" : "Add to cart"}
+          </button>
+
+          {product.availability && (
+            <p className="mt-3 text-xs text-muted-foreground text-center">{product.availability}</p>
+          )}
+
+          <div className="mt-10 border-t border-border pt-6 space-y-4">
+            <div className="flex gap-3">
+              <Truck className="w-4 h-4 mt-1 text-muted-foreground shrink-0" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Free shipping on orders over $200. Pieces are dispatched within 2–3 working days from our
+                atelier.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <RotateCcw className="w-4 h-4 mt-1 text-muted-foreground shrink-0" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                30-day returns on unworn pieces in original condition. Return shipping is free within the EU.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {related.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 py-16">
-          <h2 className="text-2xl font-light text-foreground mb-8">You Might Also Like</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {related.map(p => (
-              <ProductCard key={p.slug} product={p} />
-            ))}
-          </div>
-        </section>
-      )}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+        <SectionHeading title="You may also like" linkTo="/shop" linkLabel="Shop all" />
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+          {related.map(item => (
+            <ProductCard key={item.slug} product={item} />
+          ))}
+        </div>
+      </section>
     </>
   );
 }

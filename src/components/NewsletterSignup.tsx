@@ -26,9 +26,9 @@ export default function NewsletterSignup() {
       style={{ backgroundImage: `url(${newsletterBg})`, backgroundSize: "cover", backgroundPosition: "center" }}
     >
       <div className="absolute inset-0 bg-foreground/40" />
-      <div className="relative z-10 max-w-md mx-auto text-center text-white">
+      <div className="relative z-10 max-w-md mx-auto text-center text-primary-foreground">
         <h2 className="text-3xl md:text-4xl font-light mb-3 tracking-wide">Monthly Dispatch</h2>
-        <p className="text-sm mb-8 text-white/80">Sign up to receive news and updates.</p>
+        <p className="text-sm mb-8 text-primary-foreground/80">Studio notes, new pieces and restocks — once a month, nothing more.</p>
         <form onSubmit={handleSubmit} className="flex gap-0">
           <input
             type="email"
@@ -36,7 +36,7 @@ export default function NewsletterSignup() {
             placeholder="Email Address"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="flex-1 px-4 py-3 bg-white text-foreground text-sm placeholder:text-muted-foreground focus:outline-none"
+            className="flex-1 px-4 py-3 bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none"
           />
           <button
             type="submit"
