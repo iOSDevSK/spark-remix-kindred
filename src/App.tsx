@@ -7,13 +7,12 @@ import { CartProvider } from "@/context/CartContext";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-
-import Cart from "./pages/Cart";
 import ProductDetail from "./pages/ProductDetail";
-import CoreCollection from "./pages/CoreCollection";
-import SetsAndPairs from "./pages/SetsAndPairs";
+import About from "./pages/About";
+import Journal from "./pages/Journal";
+import JournalArticle from "./pages/JournalArticle";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,13 +28,12 @@ const App = () => (
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
               <Route path="/shop" element={<Shop />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              
-              <Route path="/cart" element={<Cart />} />
               <Route path="/product/:slug" element={<ProductDetail />} />
-              <Route path="/collections/core" element={<CoreCollection />} />
-              <Route path="/collections/sets-and-pairs" element={<SetsAndPairs />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/journal" element={<Journal />} />
+              <Route path="/journal/:slug" element={<JournalArticle />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
